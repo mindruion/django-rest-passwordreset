@@ -58,7 +58,7 @@ class ResetPasswordValidateToken(GenericAPIView):
             # delete expired token
             reset_password_token.delete()
             return Response({'status': 'expired'}, status=status.HTTP_404_NOT_FOUND)
-        
+
         return Response({'status': 'OK'})
 
 
@@ -83,7 +83,10 @@ class ResetPasswordConfirm(GenericAPIView):
         reset_password_token = ResetPasswordToken.objects.filter(key=token).first()
 
         if reset_password_token is None:
-            return Response({'status': 'notfound'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({
+                'success': False,
+                'message': 'token is invalid'
+            }, status=status.HTTP_404_NOT_FOUND)
 
         # check expiry date
         expiry_date = reset_password_token.created_at + timedelta(hours=password_reset_token_validation_time)
@@ -91,7 +94,10 @@ class ResetPasswordConfirm(GenericAPIView):
         if timezone.now() > expiry_date:
             # delete expired token
             reset_password_token.delete()
-            return Response({'status': 'expired'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({
+                'success': False,
+                'message': 'token expired'
+            }, status=status.HTTP_404_NOT_FOUND)
 
         # change users password (if we got to this code it means that the user is_active)
         if reset_password_token.user.eligible_for_reset():
@@ -116,7 +122,9 @@ class ResetPasswordConfirm(GenericAPIView):
         # Delete all password reset tokens for this user
         ResetPasswordToken.objects.filter(user=reset_password_token.user).delete()
 
-        return Response({'status': 'OK'})
+        return Response({
+            'success': True,
+            'message': 'token is valid'})
 
 
 class ResetPasswordRequestToken(GenericAPIView):
@@ -185,7 +193,10 @@ class ResetPasswordRequestToken(GenericAPIView):
                 # let whoever receives this signal handle sending the email for the password reset
                 reset_password_token_created.send(sender=self.__class__, instance=self, reset_password_token=token)
         # done
-        return Response({'status': 'OK'})
+        return Response({
+            'success': True,
+            'message': 'email was sent'
+        })
 
 
 reset_password_validate_token = ResetPasswordValidateToken.as_view()
