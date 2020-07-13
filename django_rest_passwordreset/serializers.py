@@ -28,5 +28,6 @@ class PasswordTokenSerializer(serializers.Serializer):
             raise serializers.ValidationError("passwords does not match")
         return data
 
+
 class TokenSerializer(serializers.Serializer):
     token = serializers.CharField()
