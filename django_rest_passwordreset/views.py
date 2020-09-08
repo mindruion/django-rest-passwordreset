@@ -60,8 +60,8 @@ class ResetPasswordValidateToken(GenericAPIView):
             reset_password_token.delete()
             return Response({'status': 'expired'}, status=status.HTTP_404_NOT_FOUND)
 
-        return Response({'status': 'OK'})
-
+        return Response({'status': 'OK',
+                         'user_id': reset_password_token.user.id})
 
 class ResetPasswordConfirm(GenericAPIView):
     """
